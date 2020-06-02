@@ -18,14 +18,14 @@ function newClient(clientStub) {
 }
 
 // Drop All - discard all data and start from a clean slate.
-async function dropAll(dgraphClient) {
+async function dropAll(client) {
   const op = new dgraph.Operation();
   op.setDropAll(true);
-  await dgraphClient.alter(op);
+  await client.alter(op);
 }
 
 // Set schema.
-async function setSchema(dgraphClient) {
+async function setSchema(client) {
   const schema = `
         name: string @index(exact) .
         age: int .
@@ -36,13 +36,13 @@ async function setSchema(dgraphClient) {
     `;
   const op = new dgraph.Operation();
   op.setSchema(schema);
-  await dgraphClient.alter(op);
+  await client.alter(op);
 }
 
 // Create data using JSON.
-async function createData(dgraphClient) {
+async function createData(client) {
   // Create a new transaction.
-  const txn = dgraphClient.newTxn();
+  const txn = client.newTxn();
   try {
     // Create data.
     const p = {
@@ -56,7 +56,8 @@ async function createData(dgraphClient) {
         { name: "Bob", age: 24 },
         { name: "Charlie", age: 29 }
       ],
-      school: [{ name: "Crown Public School" }]
+      school: [{ name: "Crown Public School" }],
+      meta: { publish: true }
     };
 
     // Run mutation.
@@ -89,7 +90,7 @@ async function createData(dgraphClient) {
 }
 
 // Query for data.
-async function queryData(dgraphClient) {
+async function queryData(client) {
   // Run query.
   const query = `query all($a: string) {
         all(func: eq(name, $a)) {
@@ -106,10 +107,13 @@ async function queryData(dgraphClient) {
             school {
                 name
             }
+            meta { 
+                publish
+            }
         }
     }`;
   const vars = { $a: "Alice" };
-  const res = await dgraphClient.newTxn().queryWithVars(query, vars);
+  const res = await client.newTxn().queryWithVars(query, vars);
   const ppl = res.getJson();
 
   // Print results.
@@ -119,17 +123,20 @@ async function queryData(dgraphClient) {
 
 (async () => {
   try {
-    const dgraphClientStub = newClientStub();
-    const dgraphClient = newClient(dgraphClientStub);
-    await dropAll(dgraphClient);
-    await setSchema(dgraphClient);
-    await createData(dgraphClient);
-    await queryData(dgraphClient);
+    const stub = newClientStub();
+    const client = newClient(stub);
+
+    await dropAll(client);
+    await setSchema(client);
+    await createData(client);
+    await queryData(client);
 
     // Close the client stub.
-    dgraphClientStub.close();
+    stub.close();
   } catch (e) {
     console.error(e);
     process.exit(1);
+  } finally {
+    stub.close();
   }
 })();
