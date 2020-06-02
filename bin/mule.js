@@ -1,10 +1,13 @@
+"use strict";
+
 const dgraph = require("dgraph-js");
 const grpc = require("grpc");
+const config = require("config");
 
 // Create a client stub.
 function newClientStub() {
   return new dgraph.DgraphClientStub(
-    "stilt:9080",
+    config.get("dgraph.host"),
     grpc.credentials.createInsecure()
   );
 }
@@ -114,22 +117,19 @@ async function queryData(dgraphClient) {
   ppl.all.forEach(person => console.log(person));
 }
 
-async function main() {
-  const dgraphClientStub = newClientStub();
-  const dgraphClient = newClient(dgraphClientStub);
-  await dropAll(dgraphClient);
-  await setSchema(dgraphClient);
-  await createData(dgraphClient);
-  await queryData(dgraphClient);
+(async () => {
+  try {
+    const dgraphClientStub = newClientStub();
+    const dgraphClient = newClient(dgraphClientStub);
+    await dropAll(dgraphClient);
+    await setSchema(dgraphClient);
+    await createData(dgraphClient);
+    await queryData(dgraphClient);
 
-  // Close the client stub.
-  dgraphClientStub.close();
-}
-
-main()
-  .then(() => {
-    console.log("\nDONE!");
-  })
-  .catch(e => {
-    console.log("ERROR: ", e);
-  });
+    // Close the client stub.
+    dgraphClientStub.close();
+  } catch (e) {
+    console.error(e);
+    process.exit(1);
+  }
+})();
