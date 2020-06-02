@@ -1,0 +1,21 @@
+{
+  "name": "owlishtarn",
+  "version": "0.0.1",
+  "description": "Owlish Tarn",
+  "main": "index.js",
+  "scripts": {
+    "test": "gulp test"
+  },
+  "keywords": [
+    "Archive",
+    "graph",
+    "DAM",
+    "CMS"
+  ],
+  "author": "Andy Armstrong <andy@hexten.net>",
+  "license": "ISC",
+  "dependencies": {
+    "dgraph-js": "^20.3.0",
+    "grpc": "^1.24.2"
+  }
+}
