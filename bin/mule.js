@@ -1,5 +1,7 @@
 "use strict";
 
+require("../lib/use");
+
 const dgraph = require("dgraph-js");
 const grpc = require("grpc");
 const config = require("config");
