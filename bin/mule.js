@@ -29,13 +29,13 @@ async function dropAll(client) {
 // Set schema.
 async function setSchema(client) {
   const schema = `
-        name: string @index(exact) .
-        age: int .
-        married: bool .
-        loc: geo .
-        dob: datetime .
-        friend: [uid] @reverse .
-    `;
+    name: string @index(exact) .
+    age: int .
+    married: bool .
+    loc: geo .
+    dob: datetime .
+    friend: [uid] @reverse .
+  `;
   const op = new dgraph.Operation();
   op.setSchema(schema);
   await client.alter(op);
@@ -95,25 +95,25 @@ async function createData(client) {
 async function queryData(client) {
   // Run query.
   const query = `query all($a: string) {
-        all(func: eq(name, $a)) {
-            uid
-            name
-            age
-            married
-            loc
-            dob
-            friend {
-                name
-                age
-            }
-            school {
-                name
-            }
-            meta { 
-                publish
-            }
-        }
-    }`;
+    all(func: eq(name, $a)) {
+      uid
+      name
+      age
+      married
+      loc
+      dob
+      friend {
+        name
+        age
+      }
+      school {
+        name
+      }
+      meta { 
+        publish
+      }
+    }
+  }`;
   const vars = { $a: "Astrid" };
   const res = await client.newTxn().queryWithVars(query, vars);
   const ppl = res.getJson();
