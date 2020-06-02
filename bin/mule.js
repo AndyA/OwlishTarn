@@ -94,26 +94,28 @@ async function createData(client) {
 // Query for data.
 async function queryData(client) {
   // Run query.
-  const query = `query all($a: string) {
-    all(func: eq(name, $a)) {
-      uid
-      name
-      age
-      married
-      loc
-      dob
-      friend {
+  const query = `
+    query all($a: string) {
+      all(func: eq(name, $a)) {
+        uid
         name
         age
+        married
+        loc
+        dob
+        friend {
+          name
+          age
+        }
+        school {
+          name
+        }
+        meta { 
+          publish
+        }
       }
-      school {
-        name
-      }
-      meta { 
-        publish
-      }
-    }
-  }`;
+    }`;
+
   const vars = { $a: "Astrid" };
   const res = await client.newTxn().queryWithVars(query, vars);
   const ppl = res.getJson();
