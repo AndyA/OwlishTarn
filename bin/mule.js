@@ -46,8 +46,8 @@ async function createData(client) {
   try {
     // Create data.
     const p = {
-      uid: "_:alice",
-      name: "Alice",
+      uid: "_:astrid",
+      name: "Astrid",
       age: 26,
       married: true,
       loc: { type: "Point", coordinates: [1.1, 2] },
@@ -68,13 +68,13 @@ async function createData(client) {
     // Commit transaction.
     await txn.commit();
 
-    // Get uid of the outermost object (person named "Alice").
+    // Get uid of the outermost object (person named "Astrid").
     // Response#getUidsMap() returns a map from blank node names to uids.
     // For a json mutation, blank node label is used for the name of the created nodes.
     console.log(
-      `Created person named "Alice" with uid = ${response
+      `Created person named "Astrid" with uid = ${response
         .getUidsMap()
-        .get("alice")}\n`
+        .get("astrid")}\n`
     );
 
     console.log("All created nodes (map from blank node names to uids):");
@@ -112,20 +112,19 @@ async function queryData(client) {
             }
         }
     }`;
-  const vars = { $a: "Alice" };
+  const vars = { $a: "Astrid" };
   const res = await client.newTxn().queryWithVars(query, vars);
   const ppl = res.getJson();
 
   // Print results.
-  console.log(`Number of people named "Alice": ${ppl.all.length}`);
+  console.log(`Number of people named "Astrid": ${ppl.all.length}`);
   ppl.all.forEach(person => console.log(person));
 }
 
 (async () => {
+  const stub = newClientStub();
+  const client = newClient(stub);
   try {
-    const stub = newClientStub();
-    const client = newClient(stub);
-
     await dropAll(client);
     await setSchema(client);
     await createData(client);
