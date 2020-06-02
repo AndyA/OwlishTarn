@@ -133,9 +133,6 @@ async function queryData(client) {
     await setSchema(client);
     await createData(client);
     await queryData(client);
-
-    // Close the client stub.
-    stub.close();
   } catch (e) {
     console.error(e);
     process.exit(1);
