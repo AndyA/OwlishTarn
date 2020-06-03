@@ -29,10 +29,19 @@ async function dropAll(client) {
 // Set schema.
 async function setSchema(client) {
   const schema = `
+    type Person {
+      name: String!
+      age
+      married
+      location
+      dob
+      friend
+    }
+
     name: string @index(exact) .
     age: int .
     married: bool .
-    loc: geo .
+    location: geo .
     dob: datetime .
     friend: [uid] @reverse .
   `;
@@ -47,20 +56,44 @@ async function createData(client) {
   const txn = client.newTxn();
   try {
     // Create data.
-    const p = {
-      uid: "_:astrid",
-      name: "Astrid",
-      age: 26,
-      married: true,
-      loc: { type: "Point", coordinates: [1.1, 2] },
-      dob: new Date(1980, 1, 1, 23, 0, 0, 0),
-      friend: [
-        { name: "Bob", age: 24 },
-        { name: "Charlie", age: 29 }
-      ],
-      school: [{ name: "Crown Public School" }],
-      meta: { publish: true }
-    };
+    const p = [
+      {
+        uid: "_:astrid",
+        "dgraph.type": "Person",
+        name: "Astrid",
+        age: 26,
+        married: true,
+        location: { type: "Point", coordinates: [1.1, 2] },
+        dob: new Date(1980, 1, 1, 23, 0, 0, 0),
+        friend: [{ uid: "_:bob" }, { uid: "_:charlie" }],
+        school: [{ name: "Crown Public School" }],
+        meta: { publish: true }
+      },
+      {
+        uid: "_:bob",
+        "dgraph.type": "Person",
+        name: "Bob",
+        age: 24,
+        married: false,
+        location: { type: "Point", coordinates: [1.1, 2] },
+        dob: new Date(1980, 1, 1, 23, 0, 0, 0),
+        friend: [{ uid: "_:astrid" }, { uid: "_:charlie" }],
+        school: [{ name: "Crown Public School" }],
+        meta: { publish: true }
+      },
+      {
+        uid: "_:charlie",
+        "dgraph.type": "Person",
+        name: "Charlie",
+        age: 29,
+        married: true,
+        location: { type: "Point", coordinates: [1.1, 2] },
+        dob: new Date(1980, 1, 1, 23, 0, 0, 0),
+        friend: [{ uid: "_:astrid" }, { uid: "_:bob" }],
+        school: [{ name: "Crown Public School" }],
+        meta: { publish: true }
+      }
+    ];
 
     // Run mutation.
     const mu = new dgraph.Mutation();
@@ -101,7 +134,7 @@ async function queryData(client) {
         name
         age
         married
-        loc
+        location
         dob
         friend {
           name
@@ -125,14 +158,56 @@ async function queryData(client) {
   ppl.all.forEach(person => console.log(person));
 }
 
+async function queryPersons(client) {
+  const query = `
+    query all() {
+      all(func: type(Person)) {
+        uid
+        name
+        age
+        married
+        location
+        dob
+        friend {
+          name
+          age
+          friend {
+            name
+            age
+          }
+        }
+        school {
+          name
+        }
+        meta { 
+          publish
+        }
+      }
+    }
+  `;
+
+  const vars = {};
+  const res = await client.newTxn().queryWithVars(query, vars);
+  const ppl = res.getJson();
+
+  // Print results.
+  console.log(`People: ${ppl.all.length}`);
+  ppl.all.forEach(person => console.log(person));
+}
+
 (async () => {
+  console.log("Getting stub");
   const stub = newClientStub();
+  console.log("Getting client");
   const client = newClient(stub);
   try {
+    console.log("Dropping all existing data");
     await dropAll(client);
+    console.log("Setting schema");
     await setSchema(client);
     await createData(client);
-    await queryData(client);
+    //    await queryData(client);
+    await queryPersons(client);
   } catch (e) {
     console.error(e);
     process.exit(1);
