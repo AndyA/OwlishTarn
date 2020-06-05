@@ -30,7 +30,7 @@ async function dropAll(client) {
 async function setSchema(client) {
   const schema = `
     type Person {
-      name: String!
+      name
       age
       married
       location
@@ -169,9 +169,11 @@ async function queryPersons(client) {
         location
         dob
         friend {
+          uid
           name
           age
           friend {
+            uid
             name
             age
           }
