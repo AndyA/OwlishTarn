@@ -17,14 +17,12 @@ def _():
 def _():
     import duckdb
     from via_jsonpath import Rule, Via
-
     return Rule, Via, duckdb
 
 
 @app.cell
 def _():
     import marimo as mo
-
     return (mo,)
 
 
@@ -61,4 +59,3 @@ def _(doc, json, via):
 
 if __name__ == "__main__":
     app.run()
-# foo

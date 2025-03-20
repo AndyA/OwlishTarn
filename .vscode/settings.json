@@ -1,5 +1,3 @@
 {
-  "python.analysis.extraPaths": [
-    "nailsworth/bin"
-  ]
+  "python.analysis.extraPaths": ["playground"]
 }
