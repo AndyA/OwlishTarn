@@ -63,10 +63,6 @@ def ocr_json(ocr: OCRResponse) -> dict:
     }
 
 
-def image_url(image: str) -> str:
-    pass
-
-
 def public_url(img: str) -> str:
     return BASE_URL + "/" + urllib.parse.quote(img, safe="/()")
 
@@ -80,7 +76,7 @@ def scan_image(img_url: str) -> dict:
                 document={"type": "image_url", "image_url": img_url},
             )
         except SDKError as e:
-            if e.status_code != 429:
+            if e.status_code != 429 and e.status_code != 500:
                 raise
         print(f"Rate limited, backing off for {backoff} seconds")
         time.sleep(backoff)
@@ -102,12 +98,14 @@ try:
 except FileNotFoundError:
     state = {}
 
-for img in glob.glob(os.path.join(IMAGE_DIR, "**", "*.jpeg"), recursive=True):
+for img in glob.glob(os.path.join(IMAGE_DIR, "**", "*.jpg"), recursive=True):
     img_rel = os.path.relpath(img, IMAGE_DIR)
     if img_rel in state:
         continue
 
-    resp = scan_image(public_url(img_rel))
+    url = public_url(img_rel)
+    print(f"Scanning {img_rel}")
+    resp = scan_image(url)
     rep = ocr_json(resp)
     print(json.dumps(rep, indent=2))
     state[img_rel] = rep
