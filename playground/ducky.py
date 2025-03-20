@@ -9,7 +9,6 @@ def _():
     import json
 
     import pycouchdb
-
     return json, pycouchdb
 
 
@@ -28,7 +27,7 @@ def _():
 
 @app.cell
 def _(pycouchdb):
-    server = pycouchdb.Server("http://chaise:sofa@localhost:5984/")
+    server = pycouchdb.Server("http://chaise:sofa@lego:5984/")
     db = server.database("disco")
     return db, server
 
