@@ -518,7 +518,7 @@ dependencies = [
 requires-dist = [
     { name = "marimo", extras = ["recommended"], specifier = ">=0.11.23" },
     { name = "pycouchdb", specifier = ">=1.16.0" },
-    { name = "via-jsonpath", git = "https://github.com/AndyA/via-jsonpath" },
+    { name = "via-jsonpath", editable = "../../Python/via-jsonpath" },
     { name = "watchdog", specifier = ">=6.0.0" },
 ]
 
@@ -927,10 +927,22 @@ wheels = [
 [[package]]
 name = "via-jsonpath"
 version = "0.1.0"
-source = { git = "https://github.com/AndyA/via-jsonpath#aa417167ca0697a1ea1c853dd72a1727b500910c" }
+source = { editable = "../../Python/via-jsonpath" }
 dependencies = [
     { name = "pytest" },
     { name = "typing-extensions" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "pytest", specifier = ">=8.3.4" },
+    { name = "typing-extensions", specifier = ">=4.12.2" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest-cov", specifier = ">=6.0.0" },
+    { name = "pytest-watcher", specifier = ">=0.4.3" },
 ]
 
 [[package]]

@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-via-jsonpath = { git = "https://github.com/AndyA/via-jsonpath" }
+via-jsonpath = { path = "../../Python/via-jsonpath", editable = true }
 
 [tool.marimo.save]
 autosave_delay = 1000
