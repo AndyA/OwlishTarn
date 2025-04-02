@@ -11,10 +11,9 @@ def _(sample_slider):
 
 
 @app.cell
-def _(Rule, Via, date_time, lit, uniq):
+def _(Rule, Via, date_time, uniq):
     via = Via.chain(
         Via(
-            Rule(dst="$.txTimes", via=lit([])),
             Rule(
                 src="$.transmissions[*]",
                 dst="$.txTimes[*]",
@@ -40,7 +39,7 @@ def _(Rule, Via, date_time, lit, uniq):
                     "$.sources",
                     "$.ids",
                 ],
-                map=[sorted,uniq],
+                map=[sorted, uniq],
             ),
         ),
     )
@@ -98,7 +97,6 @@ def _(mo, sample_ids):
 def _(db):
     sample = db.query("sample/sample", limit=25, update="lazy", start_key=0.4)
     sample_ids = sorted([row["id"] for row in sample])
-
     return sample, sample_ids
 
 
