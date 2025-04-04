@@ -4,7 +4,13 @@ __generated_with = "0.11.23"
 app = marimo.App(width="columns")
 
 
-@app.cell(column=0, hide_code=True)
+@app.cell(column=0)
+def _(doc, json):
+    print(json.dumps(doc, indent=2))
+    return
+
+
+@app.cell(column=1, hide_code=True)
 def _(sample_slider):
     sample_slider
     return
@@ -51,6 +57,7 @@ def _(Deleted, JP, ViaContext):
     def date_time(date_path: str, time_path: str):
         date_path = JP(date_path)
         time_path = JP(time_path)
+
         def vf(ctx: ViaContext):
             tx_time = ctx.get(time_path)
             if tx_time == Deleted:
@@ -62,25 +69,19 @@ def _(Deleted, JP, ViaContext):
     return (date_time,)
 
 
-@app.cell(column=1)
+@app.cell(column=2)
 def _(cooked, json):
     print(json.dumps(cooked, indent=2))
     return
 
 
-@app.cell
+@app.cell(column=3)
 def _(doc, via):
     cooked = via.transform(doc)
     return (cooked,)
 
 
 @app.cell
-def _(doc, json):
-    print(json.dumps(doc, indent=2))
-    return
-
-
-@app.cell(column=2)
 def _(db, sample_ids, sample_slider):
     current_id = sample_ids[sample_slider.value]
     doc = db.get(current_id)
@@ -89,13 +90,13 @@ def _(db, sample_ids, sample_slider):
 
 @app.cell
 def _(mo, sample_ids):
-    sample_slider = mo.ui.slider(start=0, stop=len(sample_ids)-1, step=1)
+    sample_slider = mo.ui.slider(start=0, stop=len(sample_ids) - 1, step=1)
     return (sample_slider,)
 
 
 @app.cell
 def _(db):
-    sample = db.query("sample/sample", limit=25, update="lazy", start_key=0.4)
+    sample = db.query("sample/sample", limit=25, update="lazy", start_key=0.1)
     sample_ids = sorted([row["id"] for row in sample])
     return sample, sample_ids
 
