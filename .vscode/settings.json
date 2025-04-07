@@ -1,3 +1,3 @@
 {
-  "python.analysis.extraPaths": ["playground"]
+  "python.analysis.extraPaths": ["rfc6902/src"]
 }

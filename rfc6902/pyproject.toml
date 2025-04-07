@@ -1,0 +1,22 @@
+[project]
+name = "rfc6902"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Andy Armstrong", email = "andy@hexten.net" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "via-jsonpath",
+]
+
+[project.scripts]
+rfc6902 = "rfc6902:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv.sources]
+via-jsonpath = { path = "../../Python/via-jsonpath", editable = true }
