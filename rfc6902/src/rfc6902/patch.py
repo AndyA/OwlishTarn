@@ -1,35 +1,133 @@
+from copy import deepcopy
+from functools import reduce
 from typing import Any
 
-from via_jsonpath import Deleted, Editor, ViaContext
+from via_jsonpath import JPWild
 
 from rfc6902.pointer import JsonPointer
 from rfc6902.types import Patch
 
+Ref = tuple[dict, str] | tuple[list, int]
+
+sentinel = object()
+
+
+def peek(ref: Ref) -> Any:
+    obj, key = ref
+
+    if key == JPWild:
+        raise ValueError("Cannot peek virtual element")
+
+    if isinstance(obj, dict):
+        if (value := obj.get(key, sentinel)) is sentinel:
+            raise ValueError(f"Key {key} not found in dict")
+        return value
+    elif isinstance(obj, list):
+        if 0 <= key < len(obj):
+            return obj[key]
+        raise ValueError(f"Index {key} out of range for list")
+    else:
+        raise ValueError(f"Cannot get {key} from {type(obj).__name__}")
+
+
+def walk(ref: Ref, path: JsonPointer) -> Ref:
+    return reduce(lambda acc, key: (peek(acc), key), path, ref)
+
+
+def dict_key(key: Any) -> str:
+    if isinstance(key, str):
+        return key
+
+    if isinstance(key, int):
+        return str(key)
+
+    if key == JPWild:
+        return "-"
+
+    raise ValueError(f"Unsupported key type: {type(key).__name__}")
+
+
+def add(ref: Ref, value: Any) -> None:
+    obj, key = ref
+
+    if isinstance(obj, dict):
+        obj[dict_key(key)] = value
+    elif isinstance(obj, list):
+        if key == JPWild or key == len(obj):
+            obj.append(value)
+        elif not isinstance(key, int):
+            raise ValueError(f"Key {key} must be an int for list")
+        elif 0 <= key < len(obj):
+            obj.insert(key, value)
+        else:
+            raise ValueError(f"Index {key} out of range for list")
+    else:
+        raise ValueError(f"Cannot add {key} to {type(obj).__name__}")
+
+
+def remove(ref: Ref) -> None:
+    obj, key = ref
+
+    if isinstance(obj, dict):
+        obj.pop(dict_key(key))
+    elif isinstance(obj, list):
+        if key == JPWild:
+            raise ValueError("Cannot remove virtual element")
+        elif not isinstance(key, int):
+            raise ValueError(f"Key {key} must be an int for list")
+        elif 0 <= key < len(obj):
+            obj.pop(key)
+        else:
+            raise ValueError(f"Index {key} out of range for list")
+    else:
+        raise ValueError(f"Cannot remove {key} from {type(obj).__name__}")
+
+
+def replace(ref: Ref, value: Any) -> None:
+    obj, key = ref
+
+    if key == JPWild:
+        raise ValueError("Cannot replace virtual element")
+
+    if isinstance(obj, dict):
+        obj[str(key)] = value
+    elif isinstance(obj, list):
+        if not isinstance(key, int):
+            raise ValueError(f"Key {key} must be an int for list")
+        elif 0 <= key < len(obj):
+            obj[key] = value
+        else:
+            raise ValueError(f"Index {key} out of range for list")
+
 
 def rfc6902_patch(patch: Patch, obj: Any) -> Any:
-    ctx = ViaContext(path="$", data=obj, up=None)
-    editor = Editor()
+    root: Ref = ({"$": deepcopy(obj)}, "$")
+
+    def resolve(path: str) -> Ref:
+        return walk(root, JsonPointer(path))
 
     for op in patch:
-        op_type = op["op"]
-        path = JsonPointer(op["path"])
+        ref = resolve(op["path"])
+        match op["op"]:
+            case "add":
+                add(ref, deepcopy(op["value"]))
+            case "remove":
+                remove(ref)
+            case "replace":
+                replace(ref, deepcopy(op["value"]))
+            case "move":
+                from_ref = resolve(op["from"])
+                value = peek(from_ref)
+                remove(from_ref)
+                add(ref, value)
+            case "copy":
+                add(ref, deepcopy(peek(resolve(op["from"]))))
+            case "test":
+                if peek(ref) != op["value"]:
+                    raise ValueError(
+                        f"Test failed at {op['path']}: expected {op['value']}, got: {peek(ref)}"
+                    )
+            case _:
+                raise ValueError(f"Unknown operation: {op['op']}")
 
-        if op_type in ("move", "copy"):
-            from_path = JsonPointer(op["from"])
-            value = ctx.get(from_path)
-            if value is Deleted:
-                raise ValueError(f"Cannot move/copy from {from_path}: not found")
-            if op_type == "move":
-                editor.set(from_path, Deleted)
-        elif op_type == "remove":
-            value = Deleted
-        else:
-            value = op["value"]
-
-        if op_type == "test":
-            if ctx.get(path) != value:
-                raise ValueError(f"Test failed at {path}: expected {value}")
-        else:
-            editor.set(path, value)
-
-    return editor.edit(obj)
+    return peek(root)

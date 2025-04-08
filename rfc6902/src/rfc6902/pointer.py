@@ -46,4 +46,4 @@ class JsonPointer(JP):
 
     @cached_property
     def _str(self) -> str:
-        return "/" + "/".join(enc_ptr(part) for part in self)
+        return "".join("/" + enc_ptr(part) for part in self)
