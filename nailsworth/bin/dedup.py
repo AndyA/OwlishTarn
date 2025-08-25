@@ -116,4 +116,4 @@ for row in hashes:
         group += by_hash[hash]
     if len(group) > 1:
         group.sort(key=lambda x: x["file_size"], reverse=True)
-        print(json.dumps(group[1:]))
+        print(json.dumps(group[:]))
